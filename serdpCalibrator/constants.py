@@ -7,8 +7,8 @@
 
 
 class Constants:
-    fname1 = "frame1"
-    fname2 = "frame2"
+    fname1 = "img1"
+    fname2 = "img2"
     left_folder = "left/"
     right_folder = "right/"
     sonar_folder = "sonar/"
