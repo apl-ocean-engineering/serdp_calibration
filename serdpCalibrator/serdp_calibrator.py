@@ -8,6 +8,13 @@ import copy
 from stereoProcessing.point_identification3 import PointIdentification3D
 import yaml
 import numpy as np
+import cv2
+import sys
+
+sonar_img_name = "sonar_img"
+range_conversion = 1.0  # assuming m...
+
+SCALE_FACTOR = 250.0
 
 
 class CheckerBoard:
@@ -64,8 +71,12 @@ class CheckerBoard:
 
 class SerdpCalibrator:
     def __init__(self, EI_loader, checkerboard=CheckerBoard()):
-        self.PI = PointIdentification3D(EI_loader)
+        self.EI_loader = EI_loader
         self.checkerboard = checkerboard
+        self.sonar_img = None
+        self.sonar_x_points = []
+        self.sonar_z_points = []
+
 
     def rigid_body_transform(self, left_img, right_img):
         """
@@ -77,22 +88,64 @@ class SerdpCalibrator:
         Return:
             R (np array): Rotation matrix
             t (np array): Translation matrix
-            lower_left_3D_position (np array): Position of lower left point 
+            lower_left_3D_position (np array): Position of lower left point
         """
+        self.PI = PointIdentification3D(self.EI_loader)
         points4D = self.get_img_points(left_img, right_img)
         lower_left_3D_position = points4D[:3, 1]
+        print(points4D)
 
         R, t = self._calculate_rigid_body(
             self.checkerboard.get_poses(), points4D[:3, :])
 
         return R, t, lower_left_3D_position
 
+    def calculate_normal(self, R, t):
+        R_3 = R[:, 2]  # third column of R
+        N = R_3*np.matmul(R_3.transpose(), -t)
+
+        return N
+
     def get_img_points(self, left_img, right_img):
         points4D = self.PI.get_points(
             copy.copy(left_img), copy.copy(right_img))
         points4D /= points4D[3]
 
+        print(points4D)
+
         return points4D
+
+    def get_sonar_points(self, sonar_img):
+
+        cv2.namedWindow(sonar_img_name, cv2.WINDOW_NORMAL)
+        cv2.setMouseCallback(sonar_img_name, self._sonar_mouse_click)
+        self.sonar_x_points = []
+        self.sonar_z_points = []
+        self.sonar_img = sonar_img
+        cv2.imshow(sonar_img_name, self.sonar_img)
+        k = 0
+        while k != 13: #enter
+            k = cv2.waitKey(0)
+            if k == 113: #q
+                cv2.destroyAllWindows()
+                sys.exit()
+        cv2.destroyAllWindows()
+
+        return self.sonar_x_points, self.sonar_z_points
+
+    def construct_a_vector(self, N, x_pnts, z_pnts):
+        a = np.zeros((len(x_pnts), 9))
+        n1 = N[0]
+        n2 = N[1]
+        n3 = N[2]
+        for i in range(0, len(x_pnts)):
+            x = x_pnts[i]
+            z = z_pnts[i]
+            a_i = np.array(
+                [n1*x, n1*z, n1, n2*x, n2*z, n2, n3*x, n3*z, n3])
+            a[i] = a_i
+
+        return a
 
     def _calculate_rigid_body(self, pnts1, pnts2):
         c1 = self._find_centroid(pnts1)
@@ -127,3 +180,27 @@ class SerdpCalibrator:
         pnt /= i
 
         return pnt
+
+    def _polar_to_cartesian(self, bearing, range):
+        x = range * -np.cos(np.radians(bearing))
+        z = range * np.sin(np.radians(bearing))
+
+        return x, z
+
+    def _sonar_mouse_click(self, event, x, y, flags, param):
+        """
+        Callback function for mouse click event on image1 frame
+
+        Places clicked points into x1_ and y1_points lists
+        """
+        if event == cv2.EVENT_LBUTTONDOWN and self.sonar_img is not None:
+            bearing = self.sonar_img[y, x, 0]/SCALE_FACTOR
+            range = self.sonar_img[y, x, 1]/SCALE_FACTOR
+            cv2.circle(self.sonar_img, (x, y), 7, (255, 0, 0), -1)
+            cv2.imshow(sonar_img_name, self.sonar_img)
+
+            x, z = self._polar_to_cartesian(bearing, range)
+            print(bearing, range)
+            self.sonar_x_points.append(x)
+            self.sonar_z_points.append(z)
+            # Draw circle where clicked

@@ -24,12 +24,9 @@ class ImageSaver:
             "camera_left", Image, self.left_callback)
         self.right_sub = rospy.Subscriber(
             "camera_right", Image, self.right_callback)
-        self.sonar_callback = rospy.Subscriber(
-            "drawn_sonar", Image, self.sonar_callback)
 
         self.left_img = None
         self.right_img = None
-        self.sonar_img = None
 
         self.save_path = save_path
 
@@ -45,14 +42,6 @@ class ImageSaver:
         except CvBridgeError as e:
             print(e)
 
-    def sonar_callback(self, data):
-        try:
-            sonar_img = self.bridge.imgmsg_to_cv2(data, "16SC3")
-            sonar_img.astype(np.uint16)
-            self.sonar_img = sonar_img
-        except CvBridgeError as e:
-            print(e)
-
     def main(self):
         rate = rospy.Rate(30)
         count = 0
@@ -61,26 +50,20 @@ class ImageSaver:
                 if self.left_img.shape[0] > 0 and self.right_img.shape[0] > 0:
                     cv2.imshow(Constants.fname1, self.left_img)
                     cv2.imshow(Constants.fname2, self.right_img)
-                    cv2.imshow("sonar", self.sonar_img)
 
-                    k = cv2.waitKey(3)
-                    if k == 13:  # enter
-                        left_name = self.save_path + \
-                            Constants.left_folder + "left" + \
-                            str(count) + ".png"
-                        right_name = self.save_path + \
-                            Constants.right_folder + "right" + \
-                            str(count) + ".png"
-                        sonar_name = self.save_path + \
-                            Constants.sonar_folder + "sonar" + \
-                            str(count) + ".tiff"
+                    cv2.waitKey(3)
+                    left_name = self.save_path + \
+                        Constants.left_folder + "left" + \
+                        str(count) + ".png"
+                    right_name = self.save_path + \
+                        Constants.right_folder + "right" + \
+                        str(count) + ".png"
 
 
 
-                        cv2.imwrite(left_name, self.left_img)
-                        cv2.imwrite(right_name, self.right_img)
-                        tiff.imsave(sonar_name, self.sonar_img)
-                        count += 1
+                    cv2.imwrite(left_name, self.left_img)
+                    cv2.imwrite(right_name, self.right_img)
+                    count += 1
 
             rate.sleep()
 

@@ -8,11 +8,13 @@ from serdpCalibrator.constants import Constants
 from serdpCalibrator.serdp_calibrator import SerdpCalibrator, CheckerBoard
 from stereoProcessing.intrinsic_extrinsic import Loader
 from stereoProcessing.intrinsic_extrinsic import ExtrinsicIntrnsicLoaderSaver
+import tifffile as tiff
 
 import argparse
 from os.path import dirname, abspath
 import glob
 import cv2
+import numpy as np
 
 
 def main(args):
@@ -30,20 +32,37 @@ def main(args):
     right_images = glob.glob(
         args.images_path + Constants.right_folder + "*" + args.encoding)
     sonar_images = glob.glob(
-        args.images_path + Constants.sonar_folder + "*" + args.encoding)
+        args.images_path + Constants.sonar_folder + "*" + ".tiff")
 
     images = zip(left_images, right_images, sonar_images)
 
+    count = 0
     for left_name, right_name, sonar_name in images:
         left_img = cv2.imread(left_name)
         right_img = cv2.imread(right_name)
-        sonar_img = cv2.imread(sonar_name)
-        RBT = calibrator.rigid_body_transform(left_img, right_img)
-        #print("Point location", points4D)
-        # cv2.imshow(Constants.fname1, left_img)
-        # cv2.imshow(Constants.fname2, right_img)
-        # cv2.imshow("frame3", sonar_img)
-        cv2.waitKey(0)
+        sonar_img = tiff.imread(sonar_name)
+        R, t, _ = calibrator.rigid_body_transform(left_img, right_img)
+        N = calibrator.calculate_normal(R, t)
+        x_pnts, z_pnts = calibrator.get_sonar_points(sonar_img)
+
+        a = calibrator.construct_a_vector(N, x_pnts, z_pnts)
+        print(type(a))
+        b = np.array([np.linalg.norm(N)**2])
+        if count == 0:
+            A = a
+            B = b
+        else:
+            A_ = np.zeros((A.shape[0] + a.shape[0], 9))
+            A_[0:A.shape[0],:] = A
+            A_[A.shape[0]:,:] = a
+            A = A_
+            B = np.concatenate(B, b)
+        print(count, A.shape, B.shape)
+
+        count += 1
+
+    h = np.linalg.pinv(A)*B
+
 
 
 if __name__ == '__main__':
