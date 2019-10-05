@@ -3,6 +3,8 @@
 """
 @author: Mitchell Scott
 @contact: miscott@uw.edu
+
+Currently lots of testing, I'll clean it up...
 """
 from serdpCalibrator.constants import Constants
 from serdpCalibrator.serdp_calibrator import SerdpCalibrator, CheckerBoard
@@ -130,16 +132,16 @@ def main(args):
         R[:, 2] = H[:, 1]
         R = R.transpose()
         t = np.matmul(-R, H[:, 2])
-        print("R,t", R,t)
-        print("A A.T")
-        print(np.matmul(A_, A_.T))
-        print("inv(A A.T)")
-        print(np.linalg.inv(np.matmul(A_, A_.T)))
-        print("pinv(A)")
-        print(np.linalg.pinv(A_))
-        print("A*AT * inv(A*AT) == I check")
-        inv = (np.linalg.inv(np.matmul(A_, A_.T)))
-        print(np.matmul(inv, np.matmul(A_, A_.T)))
+        # print("R,t", R,t)
+        # print("A A.T")
+        # print(np.matmul(A_, A_.T))
+        # print("inv(A A.T)")
+        # print(np.linalg.inv(np.matmul(A_, A_.T)))
+        # print("pinv(A)")
+        # print(np.linalg.pinv(A_))
+        # print("A*AT * inv(A*AT) == I check")
+        # inv = (np.linalg.inv(np.matmul(A_, A_.T)))
+        # print(np.matmul(inv, np.matmul(A_, A_.T)))
         # print("find r")
         # print(calibrator._find_R(H))
         # print()
