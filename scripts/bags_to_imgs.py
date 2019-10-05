@@ -55,7 +55,7 @@ class ImageSaver:
 
     def main(self):
         rate = rospy.Rate(30)
-        count = 0
+        count = 100
         while not rospy.is_shutdown():
             if self.left_img is not None and self.right_img is not None:
                 if self.left_img.shape[0] > 0 and self.right_img.shape[0] > 0:
