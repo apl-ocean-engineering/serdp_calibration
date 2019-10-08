@@ -10,6 +10,7 @@ import yaml
 import numpy as np
 import cv2
 import sys
+import itertools
 
 from scipy.stats import special_ortho_group
 
@@ -218,6 +219,41 @@ class SerdpCalibrator:
             a[i] = a_i
 
         return a
+
+    def calculate_condition_number(self, A):
+        return np.linalg.cond(A)
+
+    def all_combinations(self, arr):
+        combinations = sum(
+            [map(
+                list, itertools.combinations(arr, i)) \
+                for i in range(len(arr) + 1)], [])
+
+        return combinations
+
+    def full_extrinsic_calculation(self, A, B):
+        h = np.matmul(
+             np.linalg.pinv(A), np.array(B).reshape((A.shape[0],)))
+        print("h")
+        print(h)
+
+        H = h.reshape((3, 3))
+        R = np.zeros((3,3))
+        
+        R[:, 0] = H[:, 0]
+        R[:, 1] = np.cross(-H[:, 0], H[:, 1])
+        R[:, 2] = H[:, 1]
+        R = R.transpose()
+        t = np.matmul(-R, H[:, 2])
+        print("R,t")
+        print(R)
+        print(t)
+        #
+        u, s, vh = np.linalg.svd(R)
+        R = np.matmul(u, vh)
+        print("SVD adjusted R")
+        print(R)
+
 
     def _calculate_rigid_body(self, pnts1, pnts2):
         c1 = self._find_centroid(pnts1)
