@@ -19,6 +19,12 @@ range_conversion = 1.0  # assuming m...
 
 SCALE_FACTOR = 250.0
 
+class CalibrationPoint:
+    id = 0
+    error = 0.0
+    a = []
+    b = 0.0
+
 
 class CheckerBoard:
     def __init__(self):
@@ -123,8 +129,8 @@ class SerdpCalibrator:
         # print("R,t1")
         # print(R_)
         # print(t_)
-        R = R_ # R_.transpose()
-        t = t_ # np.matmul(-R_.transpose(),t_)
+        R = R_.transpose() # R_.transpose()
+        t = np.matmul(-R_.transpose(),t_) # np.matmul(-R_.transpose(),t_)
         G = np.eye(4)
         G[0:3, 0:3] = R
         G[0:3, 3] = t
@@ -162,13 +168,15 @@ class SerdpCalibrator:
 
     def calculate_normal(self, R, t):
         R_3 = R[:, 2]  # third column of R
-        # print("R3")
+        print("R3")
         # print(R)
-        # print(R_3)
+        print(R_3)
         # print("R", R)
         # print("R_3", R_3)
-        # print("t", t)
-        N = R_3*np.matmul(R_3.transpose(), -t)
+        print("t", t)
+        ########
+        #IS THIS -t or t?? PAPER UNCLEAR
+        N = R_3*np.matmul(R_3.transpose(), t)
         # print("N", N, np.linalg.norm(N))
 
         return N
@@ -239,7 +247,7 @@ class SerdpCalibrator:
 
         H = h.reshape((3, 3))
         R = np.zeros((3,3))
-        
+
         R[:, 0] = H[:, 0]
         R[:, 1] = np.cross(-H[:, 0], H[:, 1])
         R[:, 2] = H[:, 1]
@@ -326,11 +334,13 @@ class SerdpCalibrator:
         if event == cv2.EVENT_LBUTTONDOWN and self.sonar_img is not None:
             bearing = self.sonar_img[y, x, 0]/SCALE_FACTOR
             range = self.sonar_img[y, x, 1]/SCALE_FACTOR
+
             if range > 0.1:
                 cv2.circle(self.sonar_img, (x, y), 7, (255, 0, 0), -1)
                 cv2.imshow(sonar_img_name, self.sonar_img)
 
                 x, z = self._polar_to_cartesian(bearing, range)
+                print(x, z)
                 print(bearing, range)
                 self.sonar_x_points.append(x)
                 self.sonar_z_points.append(z)
