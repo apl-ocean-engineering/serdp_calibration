@@ -55,7 +55,7 @@ class ImageSaver:
 
     def main(self):
         rate = rospy.Rate(30)
-        count = 100
+        count = 17
         while not rospy.is_shutdown():
             if self.left_img is not None and self.right_img is not None:
                 if self.left_img.shape[0] > 0 and self.right_img.shape[0] > 0:
@@ -64,7 +64,8 @@ class ImageSaver:
                     cv2.imshow("sonar", self.sonar_img)
 
                     k = cv2.waitKey(3)
-                    if k == 13:  # enter
+                    #if k == 13:  # enter
+                    if True:
                         left_name = self.save_path + \
                             Constants.left_folder + "left" + \
                             str(count) + ".png"
@@ -90,9 +91,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "--save_path", help="Folder to save images",
         default=dirname(dirname(abspath(__file__))) + "/images")
-    parser.add_argument(
-        "--base_path", help="Base folder to calibration values",
-        default=dirname(dirname(abspath(__file__))) + "/calibration")
 
     args = parser.parse_args()
 

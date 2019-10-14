@@ -2,3 +2,5 @@ serdpCalibrator.egg-info
 serdpCalibrator/__pycache__/
 scripts/*.pyc
 serdpCalibrator/*.pyc
+backup/
+data/

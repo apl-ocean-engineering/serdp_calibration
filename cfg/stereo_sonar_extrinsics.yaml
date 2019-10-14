@@ -1,0 +1,11 @@
+image_width: 1920
+image_height: 1080
+rotation_matrix:
+  rows: 3
+  cols: 3
+  data: [0.9974, -0.0406, 0.0602, 0.0457, 0.9953, -0.0851, -0.0565, 0.0876, 0.9946]
+
+translation:
+  rows: 3
+  cols: 1
+  data: [-0.164, -0.0616, 0.03]

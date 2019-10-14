@@ -100,18 +100,11 @@ class ROSCalibrator:
                     cv2.imshow(Constants.fname2, right_img)
                     cv2.imshow("sonar_img", sonar_img)
                     k = cv2.waitKey(1)
-
-
-
                     if k == 13:  # enter
-                        R, t, _, err = calibrator.rigid_body_transform(left_img, right_img)
-                        #err_lst.append([err, count])
-
-                        print("N")
+                        R, t, _, err = calibrator.rigid_body_transform(
+                                                left_img, right_img)
                         N = calibrator.calculate_normal(R, t)
-                        print(N)
                         x_pnts, z_pnts = calibrator.get_sonar_points(sonar_img)
-
                         a = calibrator.construct_a_vector(N, x_pnts, z_pnts)
                         keep_list.append(count)
 
@@ -124,45 +117,18 @@ class ROSCalibrator:
 
                         A, B, err_lst = self.construct_A_B_matrices(
                                 calibration_points_lst, keep_list)
-
-                        print("A")
-                        print(A)
-                        print("B")
-                        print(B)
-
-                        print("condition number")
-                        print(calibrator.calculate_condition_number(A))
+                        # print("A")
+                        # print(A)
+                        # print("B")
+                        # print(B)
+                        # print("condition number")
+                        # print(calibrator.calculate_condition_number(A))
 
                         matrix_indicies = [i for i in keep_list]
-                        combinations = calibrator.all_combinations(matrix_indicies)
+                        combinations = calibrator.all_combinations(
+                                                            matrix_indicies)
                         print("Count", count)
                         print("Keep list size", len(keep_list))
-
-                        # condition_number_lst = []
-                        # for combination in combinations:
-                        #     A_ = A
-                        #     if combination == []:
-                        #         continue
-                        #     if len(combination) >= A.shape[0]:
-                        #         continue
-                        #     A_cond = calibrator.calculate_condition_number(
-                        #                          np.delete(A_, combination, 0))
-                        #     score_inds = [len(combination), A_cond, combination]
-                        #     condition_number_lst.append(copy.deepcopy(score_inds))
-                        #
-                        # print("Condition numbers after removal")
-                        # downsampled_number_list = []
-                        # count_list = [0]*len(condition_number_lst)
-                        # for val in condition_number_lst:
-                        #     ind = val[0]
-                        #     count_list[ind -1] += 1
-                        #     if count_list[ind -1] <= 5:
-                        #         downsampled_number_list.append(val)
-                        #
-                        # sorted_condition_list = sorted(downsampled_number_list, key=lambda tup: tup[1])
-                        # for val in sorted_condition_list:
-                        #      print(count - val[0] + 1, val[1:])
-
 
                         print("Rigid body transformation preprojection error")
                         print(sorted(err_lst, key = lambda x: x[1]))
@@ -184,7 +150,8 @@ class ROSCalibrator:
                                 calibrator.full_extrinsic_calculation(
                                         A, B)
                                 save = input(
-                                "Correct? Press '2' to try new combination, or anything else to continue ")
+                                "Correct? Press '2' to try new combination, \
+                                or anything else to continue ")
                                 if save == 2:
                                     for num in remove_nums:
                                         keep_list.append(num)
@@ -194,8 +161,6 @@ class ROSCalibrator:
                             keep_list.pop()
 
                         count += 1
-
-
             rate.sleep()
 
 
@@ -231,113 +196,3 @@ if __name__ == '__main__':
 
     RC = ROSCalibrator()
     RC.main(args)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                        # print(keep_list)
-
-                #
-                #         if count == 0:
-                #             A_ = a
-                #         else:
-                #             A_ = np.zeros((A.shape[0] + a.shape[0], 9))
-                #             A_[0:A.shape[0], :] = A
-                #             A_[A.shape[0]:, :] = a
-                #             A_ = A_[keep_list,:]
-                #
-                #         print(A_.shape)
-                #
-                #
-                #         print("condition number")
-                #         print(calibrator.calculate_condition_number(A_))
-                #
-                #         matrix_indicies = [i for i in range(0, A_.shape[0])]
-                #         combinations = calibrator.all_combinations(matrix_indicies)
-                #         print("Count", count)
-                #
-                #         condition_number_lst = []
-                #         for combination in combinations:
-                #             if combination == []:
-                #                 continue
-                #             if len(combination) >= A_.shape[0]:
-                #                 continue
-                #             A_cond = calibrator.calculate_condition_number(
-                #                                  np.delete(A_, combination, 0))
-                #             score_inds = [len(combination), A_cond, combination]
-                #             condition_number_lst.append(copy.deepcopy(score_inds))
-                #
-                #         print("Condition numbers after removal")
-                #         downsampled_number_list = []
-                #         count_list = [0]*len(condition_number_lst)
-                #         for val in condition_number_lst:
-                #             ind = val[0]
-                #             count_list[ind -1] += 1
-                #             if count_list[ind -1] <= 5:
-                #                 downsampled_number_list.append(val)
-                #
-                #         sorted_condition_list = sorted(downsampled_number_list, key=lambda tup: tup[1])
-                #         for val in sorted_condition_list:
-                #              print(count - val[0] + 1, val[0:])
-                #
-                #
-                #         print("Rigid body transformation preprojection error")
-                #         print(sorted(err_lst))
-                #
-                #         for i in range(0, len(x_pnts)):
-                #             B_lst.append(np.linalg.norm(N)**2)
-                #
-                #         B_ = []
-                #         #B_lst[keep_list]
-                #         for ind in keep_list:
-                #             B_.append(B_lst[ind])
-                #         calibrator.full_extrinsic_calculation(A_, B_)
-
-                #         save = input("correct? ")
-                #
-                #
-                #         if save == 1:
-                #             A = A_
-                #
-                #         elif save == 2:
-                #             A = A_
-                #             while save == 2:
-                #                 # A_recalc = A_
-                #                 # B_lst_recalc = B_lst
-                #                 # err_lst_recalc = err_lst
-                #                 remove_nums = input("remove_nums: ")
-                #                 # A_recalc = np.delete(A, remove_nums, 0)
-                #                 for num in sorted(remove_nums, reverse = True):
-                #                     keep_list.remove(num)
-                #                     # B_lst_recalc.pop(num)
-                #                     # err_lst_recalc.pop(num)
-                #                 A_recalc = A_[keep_list, :]
-                #                 B_lst_recalc = [B_[val] for val in keep_list]
-                #                 calibrator.full_extrinsic_calculation(
-                #                         A_recalc, B_lst_recalc)
-                #                 save = input(
-                #                 "Correct? Press '2' to try new combination, or anything else to continue ")
-                #                 if save == 2:
-                #                     for num in remove_nums:
-                #                         keep_list.append(num)
-                #                         keep_list = sorted(keep_list)
-                #         #
-                #         else:
-                #             keep_list.pop()
-                #             count -= 1
-                #
-                #         count += 1
-                # except Exception as e:
-                #      print(e)
